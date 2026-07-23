@@ -1,0 +1,14 @@
+{
+    "correo": {
+        "asunto": "CARBON FREE CHILE Daily Operator Log",
+        "remitente": ""
+    },
+
+    "rutas": {
+        "descargas": "data/Descargas",
+        "maestro": "data/Maestro/CarbonFree_Master.xlsx",
+        "historial": "data/historial.txt",
+        "logs": "data/Logs",
+        "backups": "data/Backups"
+    }
+}
