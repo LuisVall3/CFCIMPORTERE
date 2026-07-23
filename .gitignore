@@ -1,0 +1,27 @@
+# Entorno virtual
+.venv/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# macOS
+.DS_Store
+
+# VS Code
+.vscode/
+
+# Archivos generados
+dist/
+build/
+
+# Datos temporales
+data/Descargas/*
+data/Logs/*
+data/Backups/*
+
+# Mantener la estructura de carpetas
+!data/Descargas/.gitkeep
+!data/Logs/.gitkeep
+!data/Backups/.gitkeep
