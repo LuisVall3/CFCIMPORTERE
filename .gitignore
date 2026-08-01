@@ -24,4 +24,4 @@ data/Backups/*
 # Mantener la estructura de carpetas
 !data/Descargas/.gitkeep
 !data/Logs/.gitkeep
-!data/Backups/.gitkeep
+!data/Backups/.gitkeepl.com
