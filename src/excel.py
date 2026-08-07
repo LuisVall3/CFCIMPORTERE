@@ -43,7 +43,8 @@ class ExcelManager:
         # Abrir el Excel maestro
         wb = load_workbook(self.archivo_maestro)
 
-        ws = wb.active
+        # Trabajar siempre sobre la primera hoja
+        ws = wb[wb.sheetnames[0]]
 
         # Agregar filas al final
         for fila in df.itertuples(index=False):

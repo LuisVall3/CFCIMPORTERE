@@ -7,6 +7,7 @@ from src.backup import BackupManager
 from src.logger import LoggerManager
 from src.excel import ExcelManager
 from src.outlook import OutlookManager
+from src.history import HistoryManager
 
 
 class CarbonFreeApp:
@@ -18,10 +19,14 @@ class CarbonFreeApp:
         self.logger = LoggerManager(
             self.config.ruta_logs
         )
+        self.history = HistoryManager(
+            self.config.ruta_historial
+        )
 
         self.outlook = OutlookManager(
             self.config,
-            self.logger
+            self.logger,
+            self.history
         )
 
         self.excel = ExcelManager(
@@ -33,28 +38,36 @@ class CarbonFreeApp:
             self.config.ruta_backups
         )
 
-    def run(self):
+    def run(self, callback=print):
 
-        self.logger.info("=" * 50)
-        self.logger.info("Carbon Free Importer iniciado")
-        self.logger.info("=" * 50)
+        callback("Buscando correo...")
 
-        print("\nCarbon Free Importer\n")
+        archivo = self.outlook.obtener_excel()
 
-        # Verificar Outlook
-        if not self.outlook.conectar():
+        if archivo is None:
 
-            self.logger.warning(
-                "No fue posible conectar con Outlook."
-            )
+            callback("No existen correos nuevos.")
 
             return
 
-        # Crear Backup
-        self.crear_backup()
+        callback("Correo encontrado.")
 
-        self.logger.info("Proceso finalizado correctamente.")
+        try:
 
+            self.backup.crear_backup()
+
+            callback("Backup creado.")
+
+        except FileNotFoundError:
+
+            callback("No existe Excel maestro.")
+
+        filas = self.excel.agregar_registros(archivo)
+
+        callback(f"{filas} filas agregadas.")
+
+        callback("Proceso terminado.")
+        
     def crear_backup(self):
 
         try:
