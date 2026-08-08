@@ -3,12 +3,11 @@
         "asunto": "CARBON FREE CHILE Daily Operator Log",
         "remitente": "fleet_performance@novasourcepower.com"
     },
-
     "rutas": {
         "descargas": "data/Descargas",
-        "maestro": "data/Maestro/CarbonFree_Master.xlsx",
+        "maestro": "/Volumes/LUCHOVALLE/NorthDev/maestro/CarbonFree_Master.xlsx",
         "historial": "data/historial.txt",
-        "logs": "data/Logs",
+        "logs": "/Volumes/LUCHOVALLE/NorthDev/logs",
         "backups": "data/Backups"
     }
 }

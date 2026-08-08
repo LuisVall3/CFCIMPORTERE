@@ -14,9 +14,18 @@ from src.outlook import OutlookManager
 class CarbonFreeApp:
 
     def __init__(self):
-
         self.config = ConfigManager()
+        self.logger = None
+        self.outlook = None
+        self.excel = None
+        self.backup = None
 
+        # Si ya están configuradas las rutas, inicializamos los módulos de inmediato
+        if not self.config.necesita_configuracion:
+            self.inicializar_servicios()
+
+    def inicializar_servicios(self):
+        """Inicializa los servicios una vez que las rutas en config son válidas."""
         self.logger = LoggerManager(
             self.config.ruta_logs
         )
@@ -24,7 +33,6 @@ class CarbonFreeApp:
         self.outlook = OutlookManager(
             self.config,
             self.logger,
-
         )
 
         self.excel = ExcelManager(
@@ -36,10 +44,13 @@ class CarbonFreeApp:
             self.config.ruta_backups
         )
 
-    def run(self, escribir=None):
+    def run(self, escribir=None, ruta_archivo=None):
+
+        # Aseguramos que los servicios estén listos antes de ejecutar
+        if not self.logger:
+            self.inicializar_servicios()
 
         def log(mensaje):
-
             self.logger.info(mensaje)
 
             if escribir:
@@ -54,34 +65,26 @@ class CarbonFreeApp:
         # Buscar reporte
         log("Buscando reporte diario...")
 
-        archivo = self.outlook.obtener_excel()
+        archivo = self.outlook.obtener_excel(ruta_archivo)
 
         if not archivo:
-
             log("No se encontró un reporte nuevo.")
-
             return
 
         log(f"Reporte encontrado: {archivo.name}")
 
         # Backup
         if self.excel.existe():
-
             log("Creando backup del Excel Maestro...")
-
             backup = self.backup.crear_backup()
-
             log(f"Backup creado: {backup.name}")
-
         else:
-
             log("El Excel Maestro todavía no existe.")
 
         # Actualizar maestro
         log("Actualizando Excel Maestro...")
 
         try:
-
             registros = self.excel.agregar_registros(
                 archivo
             )
@@ -98,10 +101,10 @@ class CarbonFreeApp:
             )
 
         except Exception as e:
-
-            self.logger.error(
-                f"Error durante la importación: {e}"
-            )
+            if self.logger:
+                self.logger.error(
+                    f"Error durante la importación: {e}"
+                )
 
             log(
                 f"❌ Error durante la importación: {e}"
@@ -110,6 +113,7 @@ class CarbonFreeApp:
             log(
                 "El archivo NO fue eliminado para poder revisarlo."
             )
+            raise e
 
         log("===================================")
         log("Proceso terminado correctamente.")

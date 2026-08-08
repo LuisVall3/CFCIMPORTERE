@@ -26,3 +26,13 @@ data/Backups/*
 !data/Logs/.gitkeep
 !data/Backups/.gitkeepl.com
 CFCImporter
+CFCImporter
+
+
+build/
+dist/
+*.spec
+.venv/
+__pycache__/
+*.pyc
+data/
