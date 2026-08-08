@@ -7,7 +7,6 @@ Manejo del Excel Maestro.
 from pathlib import Path
 
 import pandas as pd
-from openpyxl import Workbook
 from openpyxl import load_workbook
 
 
@@ -30,27 +29,47 @@ class ExcelManager:
 
     def agregar_registros(self, archivo_nuevo: Path):
 
-        # Leer archivo recibido
-        df = pd.read_excel(archivo_nuevo)
+        # Leer archivo nuevo
+        df_nuevo = pd.read_excel(archivo_nuevo)
 
-        # Si no existe el maestro, lo crea
+        # Si el Maestro no existe, lo crea completo
         if not self.existe():
 
-            self.crear_maestro(df)
+            self.crear_maestro(df_nuevo)
 
-            return len(df)
+            return len(df_nuevo)
 
-        # Abrir el Excel maestro
+        # Leer Maestro existente
+        df_maestro = pd.read_excel(
+            self.archivo_maestro
+        )
+
+        # Eliminar registros que ya existen
+        df_comparacion = df_nuevo.merge(
+            df_maestro.drop_duplicates(),
+            how="left",
+            indicator=True
+        )
+
+        df_nuevos = df_comparacion[
+            df_comparacion["_merge"] == "left_only"
+        ].drop(columns=["_merge"])
+
+        # Si no hay registros nuevos
+        if df_nuevos.empty:
+
+            return 0
+
+        # Abrir Excel Maestro
         wb = load_workbook(self.archivo_maestro)
 
-        # Trabajar siempre sobre la primera hoja
         ws = wb[wb.sheetnames[0]]
 
-        # Agregar filas al final
-        for fila in df.itertuples(index=False):
+        # Agregar solamente registros nuevos
+        for fila in df_nuevos.itertuples(index=False):
 
             ws.append(list(fila))
 
         wb.save(self.archivo_maestro)
 
-        return len(df)
+        return len(df_nuevos)

@@ -1,5 +1,7 @@
 """
-Clase principal de Carbon Free Importer
+app.py
+
+Clase principal de Carbon Free Importer.
 """
 
 from src.config import ConfigManager
@@ -7,7 +9,6 @@ from src.backup import BackupManager
 from src.logger import LoggerManager
 from src.excel import ExcelManager
 from src.outlook import OutlookManager
-from src.history import HistoryManager
 
 
 class CarbonFreeApp:
@@ -19,14 +20,11 @@ class CarbonFreeApp:
         self.logger = LoggerManager(
             self.config.ruta_logs
         )
-        self.history = HistoryManager(
-            self.config.ruta_historial
-        )
 
         self.outlook = OutlookManager(
             self.config,
             self.logger,
-            self.history
+
         )
 
         self.excel = ExcelManager(
@@ -38,58 +36,81 @@ class CarbonFreeApp:
             self.config.ruta_backups
         )
 
-    def run(self, callback=print):
+    def run(self, escribir=None):
 
-        callback("Buscando correo...")
+        def log(mensaje):
+
+            self.logger.info(mensaje)
+
+            if escribir:
+                escribir(mensaje)
+
+            print(mensaje)
+
+        log("===================================")
+        log("Carbon Free Importer iniciado")
+        log("===================================")
+
+        # Buscar reporte
+        log("Buscando reporte diario...")
 
         archivo = self.outlook.obtener_excel()
 
-        if archivo is None:
+        if not archivo:
 
-            callback("No existen correos nuevos.")
+            log("No se encontró un reporte nuevo.")
 
             return
 
-        callback("Correo encontrado.")
+        log(f"Reporte encontrado: {archivo.name}")
+
+        # Backup
+        if self.excel.existe():
+
+            log("Creando backup del Excel Maestro...")
+
+            backup = self.backup.crear_backup()
+
+            log(f"Backup creado: {backup.name}")
+
+        else:
+
+            log("El Excel Maestro todavía no existe.")
+
+        # Actualizar maestro
+        log("Actualizando Excel Maestro...")
 
         try:
 
-            self.backup.crear_backup()
-
-            callback("Backup creado.")
-
-        except FileNotFoundError:
-
-            callback("No existe Excel maestro.")
-
-        filas = self.excel.agregar_registros(archivo)
-
-        callback(f"{filas} filas agregadas.")
-
-        callback("Proceso terminado.")
-        
-    def crear_backup(self):
-
-        try:
-
-            self.logger.info(
-                "Creando Backup..."
+            registros = self.excel.agregar_registros(
+                archivo
             )
 
-            archivo = self.backup.crear_backup()
-
-            self.logger.info(
-                f"Backup creado: {archivo.name}"
+            log(
+                f"Registros nuevos agregados: {registros}"
             )
 
-            print("✅ Backup creado.")
+            # Eliminar archivo SOLO si la importación fue exitosa
+            archivo.unlink()
 
-        except FileNotFoundError:
-
-            self.logger.warning(
-                "Excel Maestro inexistente."
+            log(
+                f"Archivo procesado eliminado: {archivo.name}"
             )
 
-            print(
-                "⚠ Excel Maestro no encontrado."
+        except Exception as e:
+
+            self.logger.error(
+                f"Error durante la importación: {e}"
             )
+
+            log(
+                f"❌ Error durante la importación: {e}"
+            )
+
+            log(
+                "El archivo NO fue eliminado para poder revisarlo."
+            )
+
+        log("===================================")
+        log("Proceso terminado correctamente.")
+        log("===================================")

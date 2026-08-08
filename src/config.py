@@ -55,7 +55,7 @@ class ConfigManager:
 
     @property
     def ruta_descargas(self):
-        return self.root / self.config["rutas"]["descargas"]
+        return Path.home() / "Downloads"
 
     @property
     def ruta_logs(self):

@@ -1,12 +1,11 @@
 """
 backup.py
 
-Realiza copias de seguridad del Excel maestro.
+Realiza una copia de seguridad del Excel Maestro.
 """
 
 from pathlib import Path
 from shutil import copy2
-from datetime import datetime
 
 
 class BackupManager:
@@ -23,12 +22,16 @@ class BackupManager:
                 f"No existe el archivo {self.origen}"
             )
 
-        fecha = datetime.now().strftime("%Y%m%d_%H%M%S")
+        # Nombre fijo del backup
+        destino = (
+            self.carpeta_backup /
+            "CarbonFree_Master_BACKUP.xlsx"
+        )
 
-        nombre = f"{self.origen.stem}_{fecha}{self.origen.suffix}"
-
-        destino = self.carpeta_backup / nombre
-
-        copy2(self.origen, destino)
+        # Sobrescribe el backup anterior
+        copy2(
+            self.origen,
+            destino
+        )
 
         return destino
