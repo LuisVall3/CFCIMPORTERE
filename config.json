@@ -5,9 +5,9 @@
     },
     "rutas": {
         "descargas": "data/Descargas",
-        "maestro": "/Volumes/LUCHOVALLE/NorthDev/maestro/CarbonFree_Master.xlsx",
+        "maestro": "",
         "historial": "data/historial.txt",
-        "logs": "/Volumes/LUCHOVALLE/NorthDev/logs",
+        "logs": "",
         "backups": "data/Backups"
     }
 }
