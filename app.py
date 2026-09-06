@@ -3,21 +3,25 @@ from src.gui import MainWindow, SetupDialog
 
 
 def main():
-
     app = CarbonFreeApp()
 
-    # Si faltan las rutas en config.json, abre el diálogo de selección
-    if app.config.necesita_configuracion:
-        # AQUÍ ESTÁ EL CAMBIO: asignamos el parámetro de forma explícita
-        setup = SetupDialog(config_manager=app.config)
-        setup.mainloop()
+    # 1. Instanciamos MainWindow primero para darle a Tkinter su ventana raíz (Root)
+    ventana = MainWindow(app)
 
-        # Carga los loggers y manejadores de archivos con las rutas elegidas
+    # 2. Si faltan rutas, usamos la ventana principal (oculta) como padre
+    if app.config.necesita_configuracion:
+        ventana.withdraw()  # Oculta la ventana principal mientras configuras
+
+        setup = SetupDialog(config_manager=app.config, parent_window=ventana)
+        ventana.wait_window(setup)  # Espera a que se guarde y cierre SetupDialog
+
+        # Carga los loggers y manejadores con las rutas ya guardadas
         app.inicializar_servicios()
 
-    # Inicia la ventana principal solo si la configuración está completa
+        ventana.deiconify()  # Muestra la ventana principal ya lista
+
+    # 3. Muestra e inicia la interfaz gráfica si la configuración está completa
     if not app.config.necesita_configuracion:
-        ventana = MainWindow(app)
         ventana.mainloop()
 
 

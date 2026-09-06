@@ -114,11 +114,10 @@ class MainWindow(ctk.CTk):
         self.header_frame.grid(row=0, column=0, padx=20, pady=(15, 10), sticky="ew")
         self.header_frame.grid_columnconfigure(0, weight=1)
 
-        # Contenedor del Logo de la Marca con Esquinas Más Redondeadas
+        # Contenedor del Logo
         self.brand_container = ctk.CTkFrame(self.header_frame, fg_color="transparent", corner_radius=16)
         self.brand_container.grid(row=0, column=0, padx=16, pady=12, sticky="w")
 
-        # Cargar logo sin fondo
         self.logo_box = ctk.CTkFrame(self.brand_container, width=50, height=50, fg_color="transparent")
         self.logo_box.pack(side="left", padx=(0, 15))
         self.logo_box.pack_propagate(False)
@@ -148,7 +147,7 @@ class MainWindow(ctk.CTk):
         )
         self.titulo.pack(anchor="w")
 
-        # Acciones Superiores (Ver Maestro + Configuración ⚙️ + Switch Tema)
+        # Acciones Superiores
         self.header_actions = ctk.CTkFrame(self.header_frame, fg_color="transparent")
         self.header_actions.grid(row=0, column=1, padx=20, pady=12, sticky="e")
 
@@ -164,7 +163,6 @@ class MainWindow(ctk.CTk):
         )
         self.btn_ver_maestro.pack(side="left", padx=(0, 10))
 
-        # Rueda de Configuración (⚙️) para cambiar Maestro/Logs
         self.btn_config = ctk.CTkButton(
             self.header_actions,
             text="⚙️",
@@ -241,11 +239,9 @@ class MainWindow(ctk.CTk):
         self.terminal_container.grid_rowconfigure(1, weight=1)
         self.terminal_container.grid_columnconfigure(0, weight=1)
 
-        # Header tipo Terminal
         self.term_header = ctk.CTkFrame(self.terminal_container, height=34, corner_radius=0)
         self.term_header.grid(row=0, column=0, sticky="ew")
 
-        # Botones decorativos
         dots_frame = ctk.CTkFrame(self.term_header, fg_color="transparent")
         dots_frame.pack(side="left", padx=12)
 
@@ -260,7 +256,6 @@ class MainWindow(ctk.CTk):
         )
         self.lbl_term_title.pack(side="left", padx=10)
 
-        # Botón para limpiar consola
         self.btn_clear_log = ctk.CTkButton(
             self.term_header,
             text="Limpiar",
@@ -274,7 +269,6 @@ class MainWindow(ctk.CTk):
         )
         self.btn_clear_log.pack(side="right", padx=10)
 
-        # Caja de Texto Terminal
         self.log = ctk.CTkTextbox(
             self.terminal_container,
             font=ctk.CTkFont(family="Consolas", size=12),
@@ -297,7 +291,6 @@ class MainWindow(ctk.CTk):
         )
         self.lbl_footer_status.pack(side="left")
 
-        # Mensajes Iniciales
         self.escribir("[SYSTEM] Inicializando entorno NovaSource Carbon Free Importer...")
         self.escribir("[SYSTEM] Listo para procesar registros diarios.")
 
@@ -317,37 +310,28 @@ class MainWindow(ctk.CTk):
         return card, lbl_val, lbl_sub
 
     def _aplicar_colores_tema(self):
-        """Aplica de forma explícita todos los colores de la paleta según el modo actual."""
         colors = PALETTE[self.modo_actual]
-
-        # Ventana principal y fondo
         self.configure(fg_color=colors["BG"])
 
-        # Header
         self.header_frame.configure(fg_color=colors["CARD_BG"], border_color=colors["CARD_BORDER"])
         self.titulo.configure(text_color=colors["TEXT_MAIN"])
 
-        # Cards
         for card in [self.card_status_frame, self.card_last_frame, self.card_action]:
             card.configure(fg_color=colors["CARD_BG"], border_color=colors["CARD_BORDER"])
 
-        # Consola Terminal
         self.terminal_container.configure(fg_color=colors["TERMINAL_BG"], border_color=colors["CARD_BORDER"])
         self.term_header.configure(fg_color=colors["TERM_HEADER"])
         self.lbl_term_title.configure(text_color=colors["TEXT_MUTED"])
         self.log.configure(text_color=colors["LOG_TEXT"])
 
-        # Textos secundarios
         self.lbl_footer_status.configure(text_color=colors["TEXT_MUTED"])
 
-        # Switch label
         if self.modo_actual == "Dark":
             self.switch_tema.configure(text="🌙 Oscuro", text_color=colors["TEXT_MAIN"])
         else:
             self.switch_tema.configure(text="☀️ Claro", text_color=colors["TEXT_MAIN"])
 
     def _alternar_tema(self):
-        """Conmuta entre modo Claro y Oscuro re-coloreando todos los contenedores."""
         self.modo_actual = self.switch_tema.get()
         ctk.set_appearance_mode(self.modo_actual)
         self._aplicar_colores_tema()
@@ -365,20 +349,16 @@ class MainWindow(ctk.CTk):
         self.log.configure(state="disabled")
 
     def _abrir_configuracion(self):
-        """Abre la ventana de configuración y registra cambios en los logs."""
         config_mgr = getattr(self.app, "config_manager", None) or getattr(self.app, "config", None)
-        
-        # Guardamos la ruta anterior para detectar si cambió
         ruta_maestro_previa = self._obtener_ruta_maestro()
 
         dialog = SetupDialog(config_mgr, parent_window=self)
         self.wait_window(dialog)
 
-        # Al cerrar el diálogo, verificamos si cambió el maestro
         ruta_maestro_nueva = self._obtener_ruta_maestro()
         if ruta_maestro_nueva and ruta_maestro_nueva != ruta_maestro_previa:
             self.escribir(f"[CONFIG] Archivo Maestro actualizado: {ruta_maestro_nueva}")
-            messagebox.showinfo("Configuración", f"Ruta del Excel Maestro actualizada con éxito:\n\n{ruta_maestro_nueva}")
+            messagebox.showinfo("Configuración", f"Ruta del Excel Maestro actualizada con éxito:\n\n{ruta_maestro_nueva}", parent=self)
 
     def _obtener_ruta_maestro(self):
         if hasattr(self.app, "config"):
@@ -399,23 +379,18 @@ class MainWindow(ctk.CTk):
         ruta_maestro = self._obtener_ruta_maestro()
 
         if not ruta_maestro or not os.path.exists(str(ruta_maestro)):
-            messagebox.showwarning("Atención", "No se encontró la ruta del Excel Maestro o el archivo no existe. Utiliza el botón ⚙️ para configurarlo.")
+            messagebox.showwarning("Atención", "No se encontró la ruta del Excel Maestro o el archivo no existe. Utiliza el botón ⚙️ para configurarlo.", parent=self)
             return
 
         try:
-            # Abrir una conexión fresca al archivo sin caché
             with pd.ExcelFile(ruta_maestro) as excel_file:
                 hojas = excel_file.sheet_names
 
                 if not hojas:
-                    messagebox.showinfo("Información", "El archivo Excel Maestro está vacío.")
+                    messagebox.showinfo("Información", "El archivo Excel Maestro está vacío.", parent=self)
                     return
 
-                # Priorizar la hoja 'Master' donde guarda ExcelManager. 
-                # Si no existe, toma la última hoja disponible.
                 nombre_hoja = "Master" if "Master" in hojas else hojas[-1]
-
-                # Leer los datos más recientes
                 df_raw = pd.read_excel(excel_file, sheet_name=nombre_hoja, header=None, nrows=35)
 
             df = df_raw.copy()
@@ -424,6 +399,7 @@ class MainWindow(ctk.CTk):
             top = ctk.CTkToplevel(self)
             top.title(f"Vista Previa Maestro - [{nombre_hoja}]")
             top.geometry("920x520")
+            top.transient(self)
             top.grab_set()
 
             aplicar_icono_ventana(top)
@@ -469,13 +445,13 @@ class MainWindow(ctk.CTk):
                 tree.insert("", "end", values=valores)
 
         except Exception as e:
-            messagebox.showerror("Error", f"No se pudo cargar la vista previa:\n\n{str(e)}")
+            messagebox.showerror("Error", f"No se pudo cargar la vista previa:\n\n{str(e)}", parent=self)
 
     def iniciar_importacion_thread(self):
         initial_dir = getattr(self.app.config, "ruta_descargas", None) if hasattr(self.app, "config") else None
 
         archivo_seleccionado = filedialog.askopenfilename(
-            parent=self,  # Evita la creación de la ventana tk secundaria
+            parent=self,
             title="Seleccionar reporte diario para procesar",
             initialdir=str(initial_dir) if initial_dir else None,
             filetypes=[("Archivos Excel", "*.xlsx"), ("Todos los archivos", "*.*")]
@@ -522,7 +498,7 @@ class MainWindow(ctk.CTk):
         self.escribir("[SUCCESS] Operación finalizada e integrada en Excel Maestro.")
         self.boton_importar.configure(state="normal", fg_color=ACCENT_GREEN)
 
-        messagebox.showinfo("NovaSource Power", "El reporte ha sido importado y procesado exitosamente.")
+        messagebox.showinfo("NovaSource Power", "El reporte ha sido importado y procesado exitosamente.", parent=self)
 
     def _al_finalizar_error(self, error_msg: str):
         self.lbl_status_val.configure(text="● ERROR DE EJECUCIÓN", text_color=COLOR_ERROR)
@@ -531,7 +507,7 @@ class MainWindow(ctk.CTk):
         self.escribir(f"[ERROR] Ocurrió una falla crítica:\n{error_msg}")
         self.boton_importar.configure(state="normal", fg_color=ACCENT_GREEN)
 
-        messagebox.showerror("Error", f"Ocurrió un error en el procesamiento:\n\n{error_msg}")
+        messagebox.showerror("Error", f"Ocurrió un error en el procesamiento:\n\n{error_msg}", parent=self)
 
 
 # ==========================================
@@ -540,7 +516,11 @@ class MainWindow(ctk.CTk):
 class SetupDialog(ctk.CTkToplevel):
 
     def __init__(self, config_manager, parent_window=None):
-        super().__init__(parent_window)
+        # Evita la creación de la ventana Tk raíz transparente
+        if parent_window is None:
+            super().__init__()
+        else:
+            super().__init__(parent_window)
 
         self.config_manager = config_manager
         self.parent_window = parent_window
@@ -549,12 +529,15 @@ class SetupDialog(ctk.CTkToplevel):
         self.geometry("580x420")
         self.resizable(False, False)
 
+        # Configuración estricta de jerarquía visual y foco
         if parent_window:
-            self.grab_set()  # Hacer modal
+            self.transient(parent_window)
+            self.lift()
+            self.grab_set()
 
         aplicar_icono_ventana(self)
 
-        # Cargar rutas previas si existen
+        # Cargar rutas previas
         rutas = {}
         if hasattr(self.config_manager, "config"):
             cfg = self.config_manager.config
@@ -562,10 +545,10 @@ class SetupDialog(ctk.CTkToplevel):
                 rutas = cfg.get("rutas", {})
         
         self.ruta_maestro = ctk.StringVar(
-            value=getattr(self.config_manager, "ruta_maestro", rutas.get("maestro", ""))
+            value=getattr(self.config_manager, "ruta_maestro", rutas.get("maestro", "")) or ""
         )
         self.ruta_logs = ctk.StringVar(
-            value=getattr(self.config_manager, "ruta_logs", rutas.get("logs", ""))
+            value=getattr(self.config_manager, "ruta_logs", rutas.get("logs", "")) or ""
         )
 
         self._crear_widgets()
@@ -668,7 +651,7 @@ class SetupDialog(ctk.CTkToplevel):
 
     def _seleccionar_maestro(self):
         file_path = filedialog.askopenfilename(
-            parent=self,  # Asociado explícitamente a esta ventana
+            parent=self,
             title="Seleccionar Excel Maestro",
             filetypes=[("Archivos Excel", "*.xlsx")]
         )
@@ -677,29 +660,39 @@ class SetupDialog(ctk.CTkToplevel):
 
     def _seleccionar_logs(self):
         dir_path = filedialog.askdirectory(
-            parent=self,  # Asociado explícitamente a esta ventana
+            parent=self,
             title="Seleccionar Carpeta de Logs"
         )
         if dir_path:
             self.ruta_logs.set(dir_path)
 
     def _guardar(self):
-        maestro = self.ruta_maestro.get()
-        logs = self.ruta_logs.get()
+        maestro = self.ruta_maestro.get().strip()
+        logs = self.ruta_logs.get().strip()
 
         if not maestro or not logs:
-            messagebox.showwarning("Atención", "Por favor define ambas rutas antes de continuar.")
+            messagebox.showwarning("Atención", "Por favor define ambas rutas antes de continuar.", parent=self)
             return
 
+        # Guardar la configuración según la firma disponible
         if hasattr(self.config_manager, "guardar_rutas"):
             self.config_manager.guardar_rutas(maestro, logs)
         elif hasattr(self.config_manager, "guardar_config"):
-            self.config_manager.guardar_config(maestro)
+            try:
+                self.config_manager.guardar_config(maestro, logs)
+            except TypeError:
+                self.config_manager.guardar_config(maestro)
 
-        # Actualizar atributos directos si existen
+        # Actualizar atributos directos
         if hasattr(self.config_manager, "ruta_maestro"):
             self.config_manager.ruta_maestro = maestro
         if hasattr(self.config_manager, "ruta_logs"):
             self.config_manager.ruta_logs = logs
+
+        # Romper de forma segura la asignación de ventana modal
+        try:
+            self.grab_release()
+        except Exception:
+            pass
 
         self.destroy()

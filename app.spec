@@ -2,10 +2,10 @@
 
 
 a = Analysis(
-    ['app.py'],
+    ['main.py'],  # 1. Punto de entrada corregido a main.py
     pathex=[],
     binaries=[],
-    datas=[],
+    datas=[('assets', 'assets')],  # 2. Empaqueta la carpeta assets completa
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
@@ -35,10 +35,12 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    icon=['assets/favicon.ico'],  # 3. Asigna el icono al archivo .exe en Windows
 )
+
 app = BUNDLE(
     exe,
     name='Carbon Free Importer.app',
-    icon='favicon.ico',
+    icon='assets/favicon.ico',
     bundle_identifier=None,
 )
