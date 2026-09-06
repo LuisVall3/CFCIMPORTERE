@@ -17,12 +17,16 @@ jobs:
       with:
         python-version: '3.11'
 
-    - name: Install dependencies
+    - name: Install dependencies & Test Tools
       run: |
         python -m pip install --upgrade pip
-        pip install pyinstaller
+        pip install pyinstaller pytest
         if (Test-Path "requirements.txt") { pip install -r requirements.txt }
         if (Test-Path "requeriments.txt") { pip install -r requeriments.txt }
+
+    - name: Run Automated Tests
+      run: |
+        pytest tests/
 
     - name: Build with PyInstaller Spec
       run: |
