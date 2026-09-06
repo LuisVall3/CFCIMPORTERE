@@ -2,7 +2,7 @@
 
 
 a = Analysis(
-    ['Carbon Free Importer.py'],
+    ['app.py'],
     pathex=[],
     binaries=[],
     datas=[],
