@@ -14,10 +14,13 @@ class ConfigManager:
     """Gestiona la configuración de Carbon Free Importer."""
 
     def __init__(self):
-        # Carpeta raíz del proyecto
-        self.root = Path(__file__).resolve().parent.parent
+        # Determinamos si corre compilado (.exe) o como script (.py)
+        if getattr(sys, 'frozen', False):
+            self.root = Path(sys.executable).parent
+        else:
+            self.root = Path(__file__).resolve().parent.parent
 
-        # 1. Definir ruta persistente fuera del directorio temporal del .exe
+        # 1. Definir ruta persistente para config.json fuera de carpetas temporales
         if sys.platform == "win32":
             self.app_dir = Path(os.environ.get("APPDATA", Path.home())) / "NovaSource"
         else:
@@ -32,16 +35,11 @@ class ConfigManager:
     def _obtener_config_por_defecto(self) -> dict:
         """Devuelve la estructura básica si config.json no existe aún."""
         return {
-            "correo": {
-                "asunto": "CARBON FREE CHILE Daily Operator Log",
-                "remitente": "fleet_performance@novasourcepower.com"
-            },
             "rutas": {
                 "descargas": "data/Descargas",
                 "maestro": "",
                 "historial": "data/historial.txt",
-                "logs": "",
-                "backups": "data/Backups"
+                "logs": ""
             }
         }
 
@@ -60,14 +58,14 @@ class ConfigManager:
         self._create_directories()
 
     def _guardar_json(self):
-        """Escribe directamente los datos de self.config en el archivo de usuario."""
+        """Escribe directamente los datos de self.config en el archivo del usuario."""
         with open(self.config_file, "w", encoding="utf-8") as file:
             json.dump(self.config, file, indent=4, ensure_ascii=False)
 
     def _resolver_ruta(self, ruta_str: str) -> Path:
         """
         Convierte una cadena de texto en Path.
-        Si la ruta es relativa, la resuelve desde la raíz del proyecto (self.root).
+        Si la ruta es relativa, la resuelve desde la raíz ejecutable/proyecto (self.root).
         Si es una ruta absoluta (ej. C:/... o /Users/...), la respeta.
         """
         if not ruta_str:
@@ -84,9 +82,8 @@ class ConfigManager:
 
         descargas = self._resolver_ruta(rutas.get("descargas", "data/Descargas"))
         logs = self._resolver_ruta(rutas.get("logs"))
-        backups = self._resolver_ruta(rutas.get("backups", "data/Backups"))
 
-        carpetas = [descargas, logs, backups, self.root / "data", self.root / "data" / "Maestro"]
+        carpetas = [descargas, logs, self.root / "data", self.root / "data" / "Maestro"]
 
         for carpeta in carpetas:
             if carpeta:
@@ -121,29 +118,17 @@ class ConfigManager:
     # ==========================
 
     @property
-    def asunto(self):
-        return self.config.get("correo", {}).get("asunto", "CARBON FREE CHILE Daily Operator Log")
-
-    @property
-    def remitente(self):
-        return self.config.get("correo", {}).get("remitente", "fleet_performance@novasourcepower.com")
-
-    @property
     def ruta_descargas(self):
         return Path.home() / "Downloads"
 
     @property
     def ruta_logs(self):
-        return self._resolver_ruta(self.config["rutas"].get("logs", ""))
+        return self._resolver_ruta(self.config.get("rutas", {}).get("logs", ""))
 
     @property
     def ruta_maestro(self):
-        return self._resolver_ruta(self.config["rutas"].get("maestro", ""))
+        return self._resolver_ruta(self.config.get("rutas", {}).get("maestro", ""))
 
     @property
     def ruta_historial(self):
-        return self._resolver_ruta(self.config["rutas"].get("historial", "data/historial.txt"))
-
-    @property
-    def ruta_backups(self):
-        return self._resolver_ruta(self.config["rutas"].get("backups", "data/Backups"))
+        return self._resolver_ruta(self.config.get("rutas", {}).get("historial", "data/historial.txt"))

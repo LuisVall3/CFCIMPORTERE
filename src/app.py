@@ -39,9 +39,9 @@ class CarbonFreeApp:
             self.config.ruta_maestro
         )
 
+        # Usamos BackupManager con la carpeta 'backups' creada automáticamente junto al .exe
         self.backup = BackupManager(
-            self.config.ruta_maestro,
-            self.config.ruta_backups
+            self.config.ruta_maestro
         )
 
     def run(self, escribir=None, ruta_archivo=None):
