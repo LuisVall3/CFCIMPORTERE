@@ -2,7 +2,7 @@
 
 
 a = Analysis(
-    ['main.py'],  # 1. Punto de entrada corregido a main.py
+    ['app.py'],  # 1. Punto de entrada corregido a main.py
     pathex=[],
     binaries=[],
     datas=[('assets', 'assets')],  # 2. Empaqueta la carpeta assets completa
