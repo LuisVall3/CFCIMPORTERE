@@ -391,13 +391,18 @@ class MainWindow(ctk.CTk):
                     return
 
                 nombre_hoja = "Master" if "Master" in hojas else hojas[-1]
-                df_raw = pd.read_excel(excel_file, sheet_name=nombre_hoja, header=None, nrows=35)
+                
+                # 1. Leemos la hoja completa (o sin restricción de nrows)
+                df_completo = pd.read_excel(excel_file, sheet_name=nombre_hoja, header=None)
+
+            # 2. Obtenemos solo las últimas 10 filas con .tail(10)
+            df_raw = df_completo.tail(10).copy()
 
             df = df_raw.copy()
             df.columns = [f"Columna {i+1}" if "Unnamed:" in str(c) or str(c).strip() == "" else str(c) for i, c in enumerate(df.columns)]
 
             top = ctk.CTkToplevel(self)
-            top.title(f"Vista Previa Maestro - [{nombre_hoja}]")
+            top.title(f"Vista Previa Maestro - Últimas 10 Filas [{nombre_hoja}]")
             top.geometry("920x520")
             top.transient(self)
             top.grab_set()
@@ -409,10 +414,20 @@ class MainWindow(ctk.CTk):
             info_frame = ctk.CTkFrame(top, corner_radius=12, fg_color=colors["CARD_BG"])
             info_frame.pack(fill="x", padx=20, pady=(15, 12))
 
-            lbl_hoja = ctk.CTkLabel(info_frame, text=f"📊 HOJA MAESTRA: {nombre_hoja}", font=ctk.CTkFont(size=13, weight="bold"), text_color=ACCENT_GREEN)
+            lbl_hoja = ctk.CTkLabel(
+                info_frame, 
+                text=f"📊 HOJA MAESTRA (ÚLTIMAS 10 FILAS): {nombre_hoja}", 
+                font=ctk.CTkFont(size=13, weight="bold"), 
+                text_color=ACCENT_GREEN
+            )
             lbl_hoja.pack(side="left", padx=16, pady=10)
 
-            lbl_archivo = ctk.CTkLabel(info_frame, text=f"📁 {os.path.basename(str(ruta_maestro))}", font=ctk.CTkFont(size=11), text_color=colors["TEXT_MUTED"])
+            lbl_archivo = ctk.CTkLabel(
+                info_frame, 
+                text=f"📁 {os.path.basename(str(ruta_maestro))}", 
+                font=ctk.CTkFont(size=11), 
+                text_color=colors["TEXT_MUTED"]
+            )
             lbl_archivo.pack(side="right", padx=16, pady=10)
 
             frame_tabla = ctk.CTkFrame(top, corner_radius=12, fg_color=colors["CARD_BG"])
@@ -516,7 +531,6 @@ class MainWindow(ctk.CTk):
 class SetupDialog(ctk.CTkToplevel):
 
     def __init__(self, config_manager, parent_window=None):
-        # Evita la creación de la ventana Tk raíz transparente
         if parent_window is None:
             super().__init__()
         else:
@@ -529,7 +543,6 @@ class SetupDialog(ctk.CTkToplevel):
         self.geometry("580x420")
         self.resizable(False, False)
 
-        # Configuración estricta de jerarquía visual y foco
         if parent_window:
             self.transient(parent_window)
             self.lift()
@@ -543,7 +556,7 @@ class SetupDialog(ctk.CTkToplevel):
             cfg = self.config_manager.config
             if isinstance(cfg, dict):
                 rutas = cfg.get("rutas", {})
-        
+
         self.ruta_maestro = ctk.StringVar(
             value=getattr(self.config_manager, "ruta_maestro", rutas.get("maestro", "")) or ""
         )
@@ -674,7 +687,7 @@ class SetupDialog(ctk.CTkToplevel):
             messagebox.showwarning("Atención", "Por favor define ambas rutas antes de continuar.", parent=self)
             return
 
-        # Guardar la configuración según la firma disponible
+        # Guardar en el gestor de configuración
         if hasattr(self.config_manager, "guardar_rutas"):
             self.config_manager.guardar_rutas(maestro, logs)
         elif hasattr(self.config_manager, "guardar_config"):
@@ -683,13 +696,26 @@ class SetupDialog(ctk.CTkToplevel):
             except TypeError:
                 self.config_manager.guardar_config(maestro)
 
-        # Actualizar atributos directos
-        if hasattr(self.config_manager, "ruta_maestro"):
-            self.config_manager.ruta_maestro = maestro
-        if hasattr(self.config_manager, "ruta_logs"):
-            self.config_manager.ruta_logs = logs
+        # Intentar actualizar atributos en memoria si no son propiedades de solo lectura
+        try:
+            if hasattr(self.config_manager, "ruta_maestro"):
+                self.config_manager.ruta_maestro = maestro
+        except AttributeError:
+            pass
 
-        # Romper de forma segura la asignación de ventana modal
+        try:
+            if hasattr(self.config_manager, "ruta_logs"):
+                self.config_manager.ruta_logs = logs
+        except AttributeError:
+            pass
+
+        # Marcar la configuración como completada
+        if hasattr(self.config_manager, "necesita_configuracion"):
+            try:
+                self.config_manager.necesita_configuracion = False
+            except AttributeError:
+                pass
+
         try:
             self.grab_release()
         except Exception:
