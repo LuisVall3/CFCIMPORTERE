@@ -39,6 +39,6 @@ exe = EXE(
 app = BUNDLE(
     exe,
     name='Carbon Free Importer.app',
-    icon=None,
+    icon='favicon.ico',
     bundle_identifier=None,
 )

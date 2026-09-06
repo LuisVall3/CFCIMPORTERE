@@ -475,6 +475,7 @@ class MainWindow(ctk.CTk):
         initial_dir = getattr(self.app.config, "ruta_descargas", None) if hasattr(self.app, "config") else None
 
         archivo_seleccionado = filedialog.askopenfilename(
+            parent=self,  # Evita la creación de la ventana tk secundaria
             title="Seleccionar reporte diario para procesar",
             initialdir=str(initial_dir) if initial_dir else None,
             filetypes=[("Archivos Excel", "*.xlsx"), ("Todos los archivos", "*.*")]
@@ -667,6 +668,7 @@ class SetupDialog(ctk.CTkToplevel):
 
     def _seleccionar_maestro(self):
         file_path = filedialog.askopenfilename(
+            parent=self,  # Asociado explícitamente a esta ventana
             title="Seleccionar Excel Maestro",
             filetypes=[("Archivos Excel", "*.xlsx")]
         )
@@ -674,7 +676,10 @@ class SetupDialog(ctk.CTkToplevel):
             self.ruta_maestro.set(file_path)
 
     def _seleccionar_logs(self):
-        dir_path = filedialog.askdirectory(title="Seleccionar Carpeta de Logs")
+        dir_path = filedialog.askdirectory(
+            parent=self,  # Asociado explícitamente a esta ventana
+            title="Seleccionar Carpeta de Logs"
+        )
         if dir_path:
             self.ruta_logs.set(dir_path)
 
